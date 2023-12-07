@@ -1,0 +1,332 @@
+---
+title: "Homework Template"
+output:
+  html_document: default
+  pdf_document: default
+date: "2023-10-09"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(palmerpenguins)
+library(ggplot2)
+library(tinytex)
+library(dplyr)
+library(janitor)
+library(ragg)
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+#Defining the cleaning functions so that when I use them later I can refer directly to the function
+
+clean_column_names <- function(penguins_data) {
+  penguins_data %>%
+    clean_names()
+}
+
+shorten_species <- function(penguins_data) {
+  penguins_data %>%
+    mutate(species = case_when(
+      species == "Adelie Penguin (Pygoscelis adeliae)" ~ "Adelie",
+      species == "Chinstrap penguin (Pygoscelis antarctica)" ~ "Chinstrap",
+      species == "Gentoo penguin (Pygoscelis papua)" ~ "Gentoo"
+    ))
+}
+
+remove_empty_columns_rows <- function(penguins_data) {
+  penguins_data %>%
+    remove_empty(c("rows", "cols"))
+}
+
+
+```
+
+*The following is a template .rmd RMarkdown file for you to use for your homework submission.*
+
+*Please Knit your .rmd to a PDF format or HTML and submit that with no identifiers like your name.*
+
+*To create a PDF, first install tinytex and load the package. Then press the Knit arrow and select "Knit to PDF".*
+
+## QUESTION 01: Data Visualisation for Science Communication
+
+*Create a figure using the Palmer Penguin dataset that is correct but badly communicates the data. **Do not make a boxplot**.*
+
+*Use the following references to guide you:*
+
+-   [*https://www.nature.com/articles/533452a*](https://www.nature.com/articles/533452a){.uri}
+-   [*https://elifesciences.org/articles/16800*](https://elifesciences.org/articles/16800){.uri}
+
+*Note: Focus on visual elements rather than writing misleading text on it.*
+
+### a) Provide your figure here:
+
+```{r bad figure code, echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(palmerpenguins)
+
+penguins_clean <- penguins_raw %>%
+  select(-starts_with("Delta")) %>%
+  select(-Comments) %>%
+  clean_names() %>%
+  clean_column_names() %>%
+  shorten_species() %>%
+  remove_empty_columns_rows()
+
+ggplot(penguins_clean, aes(x=culmen_length_mm, y = culmen_depth_mm))+
+          geom_point(size=4, alpha=0.7, aes(color = species))+
+  scale_x_continuous(limits = c(25,60))+
+  scale_y_continuous(limits = c(10,30))+
+  geom_smooth(method=lm)+
+  theme_bw()+
+labs( x = "culmen length",
+       y = "culmen depth",
+       color = "Species")+
+  guides(color=FALSE)
+        
+# There is no need to provide the code for your bad figure, just use echo=FALSE so the code is hidden. Make sure your figure is visible after you knit it. 
+
+```
+
+### b) Write about how your design choices mislead the reader about the underlying data (200-300 words).
+
+There are many mistakes in this graph, which aims to demonstrate penguin culmen length against culmen depth.
+The absence of a title and axes labels with units immediately makes it difficult for the reader to interpret what this graph is attempting to show. Additionally, the use of a scatter plot here when there is such a large amount of data for both culmen length and depth makes it difficult to discern any relationship between the two variables. The relationship does not seem to be linear (though it's very difficult to interpret), but the line of best fit perhaps create a false impression that it is. The size of the points on the graph also results in overlapping of data such that distinguishing an individual point, not least a trend, becomes extremely difficult. #This overlapping is also, in part, due to the axes limits being altered on both the x and y. This not only forces the data into a small space and makes the axes far longer than necessary, but is misleading because it appears as if there is perhaps more of a negative correlation here than in reality. The data is not spread out enough for the reader to be able to interpret any trend, if one exists. Finally, the use of a colour code but no legend further misleads the reader, as it is entirely unclear what this even signifies, and why these data points might be grouped together. 
+There is no indication based on this graph as to whether or not a relationship between bill length and bill depth actually exists. The data is all squeezed into a small area of the graph, with a confusing/unexplained colour code and a line of best fit with unexplained confidence intervals.
+
+*Include references.*
+
+------------------------------------------------------------------------
+
+## QUESTION 2: Data Pipeline
+
+*Write a data analysis pipeline in your .rmd RMarkdown file. You should be aiming to write a clear explanation of the steps, the figures visible, as well as clear code.*
+
+*Your code should include the steps practiced in the lab session:*
+
+-   *Load the data*
+
+-   *Appropriately clean the data*
+
+-   *Create an Exploratory Figure (**not a boxplot**)*
+
+-   *Save the figure*
+
+-   ***New**: Run a statistical test*
+
+-   ***New**: Create a Results Figure*
+
+-   *Save the figure*
+
+*An exploratory figure shows raw data, such as the distribution of the data. A results figure demonstrates the stats method chosen, and includes the results of the stats test.*
+
+*Between your code, communicate clearly what you are doing and why.*
+
+*Your text should include:*
+
+-   *Introduction*
+
+-   *Hypothesis*
+
+-   *Stats Method*
+
+-   *Results*
+
+-   *Discussion*
+
+-   *Conclusion*
+
+*You will be marked on the following:*
+
+### a) Your code for readability and functionality
+
+### b) Your figures for communication
+
+### c) Your text communication of your analysis
+
+*Below is a template you can use.*
+
+------------------------------------------------------------------------
+
+### Introduction
+
+```{r Data Exploration}
+
+# The first step in analysing a dataset is to load in the data, and to download any relevant/necessary packages, which I have done in the chunk of code below. 
+
+#install.packages('palmerpenguins')
+# This contains the penguin data we will be analysing
+#install.packages('dplyr')
+# This enables us to use various different functions, such as piping, which can make the code easier to read, interpret and makes it more concise.
+#install.packages('ggplot2')
+# This package enables us to form graphs with the data
+#install.packages('janitor')
+# Finally, this package can be useful for cleaning and organising data
+#install.packages('ggsave')
+#This package enables us to save our figures
+
+library(palmerpenguins)
+library(dplyr)
+library(ggplot2)
+library(janitor)
+
+# I am now loading the packages so they are ready to use and I can begin looking at the data.
+
+# We can now have a look at some of the raw penguin data ahead of analysis, and choose some variables of interest which we will use to explore possible relationships. 
+
+head(penguins_raw)
+# Taking a look at the raw set of data, there is a lot of information here that isn't necessarily useful, making it harder to interpret.  
+# We want to remove anything from this table that makes the data hard to read. Initially, we will remove the delta column as it provides no useful information, shorten column names (eg; species names) to only 1 word so the data is more digestible and remove any empty columns which take up space.
+
+penguins_clean <- penguins_raw %>%
+  select(-starts_with("Delta")) %>%
+  select(-Comments) %>%
+  clean_names() %>%
+  clean_column_names() %>%
+  shorten_species() %>%
+  remove_empty_columns_rows()
+
+# We will now check the data to confirm it has been cleaned correctly, which will enable us to analyse, perform statistical tests and form some exploratory graphs of different variables.
+head(penguins_clean)
+
+
+
+# Using the data, I will be exploring whether or not there is a relationship between penguin culmen length and culmen depth. The following code will form a scatter plot with culmen length on the x-axis and culmen depth on the y, including a legend which indicates which colour refers to which species.
+
+exploratory_plot<- ggplot(penguins_clean, aes(x=culmen_length_mm, y = culmen_depth_mm))+
+          geom_point(aes(color = species))+
+  theme_bw()+
+labs( title = 'Penguin culmen length vs depth',
+      x = "Culmen length (mm)",
+       y = "Culmen depth (mm)",
+       color = "Species")
+head(penguins_clean)
+exploratory_plot
+
+#The following code can be used to save the plot:
+agg_jpeg("Saved_figures/exploratory_plot.jpeg", 
+        width = 15, height = 15, units = "cm", res = 600, scaling = 1)
+exploratory_plot
+dev.off()
+
+# From this graph alone, there does not appear to be an overall trend between culmen length and depth.
+```
+
+### Hypothesis
+
+Using the cleaned dataset and exploratory figure, I consequently hypothesise that culmen length cannot be used to predict or estimate culmen depth. However, I hypothesise that the relationship between culmen length and depth might indeed be species-specific, and that a correlation between species and culmen dimensions exists. This is what I will be investigating using statistical tests and plots.
+
+### Statistical Methods
+
+```{r Statistics}
+#I am going to firstly fit a linear model to the data to determine whether this results in a significant relationship.
+
+linear_model<-lm(culmen_depth_mm ~ culmen_length_mm, data = penguins_clean)
+summary(linear_model)
+
+#I am now performing an analysis of variance (ANOVA) test, in order to determine whether there is a significant effect of species. ANOVA will determine whether differences in the means of each species are significant, or whether it is likely that the observed differences are due to chance. I have first created a second linear model whereby species is incorporated.
+
+linear_model2<- lm(culmen_depth_mm ~ culmen_length_mm + species, data = penguins_clean)
+anova(linear_model2)
+
+
+```
+
+### Results & Discussion
+
+```{r Plotting Results}
+library(ggpmisc)
+
+#Following on from this, I'm plotting a graph containing the results of the linear model so it's easier to visualise
+linear_model_plot<- ggplot(penguins_clean, aes(x = culmen_length_mm, y = culmen_depth_mm)) +
+  geom_point() +  # Scatter plot of the data points
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +  
+  # Adding a fitted regression line
+  labs(title = "Linear Model of Culmen Length vs Culmen Depth",
+       x = "Culmen Length (mm)",
+       y = "Culmen Depth (mm)")+
+  stat_poly_line() +
+ stat_poly_eq(use_label(c("eq", "adj.R2", "f", "p", "n"))) +
+ geom_point()
+#Adding labels to contain the results of the stats test 
+
+#Saving the figure
+agg_jpeg("Saved_figures/linear_model_plot.jpeg", 
+        width = 15, height = 15, units = "cm", res = 600, scaling = 1)
+linear_model_plot
+dev.off()
+
+#The adjusted R^2 value represents the coefficient of determination, and quantifies the extent of variation in the dependent variable (in this case, culmen depth) which can be explained by the independent variable (culmen length). 
+#The result of 0.052 suggests that culmen length cannot be used to predict culmen depth. However, an F-statistic of 19.88, with a very small p-value, would indicate that there is an overall significant linear relationship between the 2 variables. Further to this, the gradient of -0.0852, also with a very small p-value, indicates the relationship is significantly different from zero.
+# This is perhaps surprising based on the spread of the data, however it makes sense that culmen length in penguins is related to culmen depth. 
+
+#Next, I will plot the results from the ANOVA test onto a graph. Using the ANOVA results, I have included a regression line for each species in order to make the analysis easier.
+anova_plot <- ggplot(penguins_clean, aes(x = culmen_length_mm, y = culmen_depth_mm, colour=species)) +
+  geom_point() +  # Scatter plot of the data points
+  geom_smooth(method = "lm", se = FALSE, color = 'red', aes(group=species)) +  
+  labs(title = "ANOVA of Culmen Length vs Culmen Depth",
+       x = "Culmen Length (mm)",
+       y = "Culmen Depth (mm)")
+  
+#Saving the figure
+agg_jpeg("Saved_figures/anova_plot.jpeg", 
+        width = 15, height = 15, units = "cm", res = 600, scaling = 1)
+anova_plot
+dev.off()
+
+#I can determine, both from the graph and the output of the ANOVA test, that there is a significant effect of both culmen length and species on the culmen depth. The F-statistic of 80.84 and 522.17 respectively, along with very small p-values, suggest that the effect of length and species on depth are greater than what could be explained by chance alone.
+
+```
+
+### Conclusion
+Overall, the results of my statistical tests suggest I can accept the hypothesis that variation in culmen depth cannot be predicted by culmen length, due to the small adjusted R^2 value. Additionally, while the gradient is significantly different from zero, it is still very small (-0.05) and indicates a negative relationship, despite the species-specific grdients being positive. However, based on the results from both the linear model and ANOVA, I can conclude that the data suggests both culmen length and species have a significant effect on culmen depth.  
+
+------------------------------------------------------------------------
+
+## QUESTION 3: Open Science
+
+### a) GitHub
+
+*Upload your RProject you created for **Question 2** and any files and subfolders used to GitHub. Do not include any identifiers such as your name. Make sure your GitHub repo is public.*
+
+*GitHub link:*
+https://github.com/user801259/Reproducible-data.git
+
+*You will be marked on your repo organisation and readability.*
+
+### b) Share your repo with a partner, download, and try to run their data pipeline.
+
+*Partner's GitHub link:*
+https://github.com/hiddenuser884/Reproducible-figures
+
+*You **must** provide this so I can verify there is no plagiarism between you and your partner.*
+
+### c) Reflect on your experience running their code. (300-500 words)
+
+I found that this code was very easy to work with. One of the main strengths was the use of annotations. Every step taken is explained thoroughly and clearly, making it easy for the reader to understand what that particular chunk of code was being used for, and therefore to reproduce it. For example, the use of cleaning functions after visualising the raw data table; each stage of cleaning was justified, consequently making it easier both to analyse and modify. At the very start, though, there is perhaps not a need to explain which variables are under investigation, given that no data has yet been observed.
+
+The exploratory plot perhaps had more detail than was necessary; the chunk of code was long, and included both a regression line and confidence intervals (which usually come at a later stage with statistical analysis). Initially, a scatter plot alone might provide enough information to indicate whether a relationship exists that is worth further investigation, and it wasn’t particularly clear as to why this detail was used. Additionally, the use of a null and alternative hypothesis can be very helpful for later statistical analyses and were detailed. However, these were quite long/wordy and perhaps might be clearer if made a bit more concise. I think this becomes particularly apparent in the results section, where some of the explanation became confusing.
+
+For the statistical tests, both a linear model for the general relationship between body mass and flipper length, and an ANCOVA investigating whether species influenced this relationship, were performed. The code was, again, very easy to follow and these tests provide a comprehensive understanding of the initial hypotheses. However, it is not especially clear why three linear models were created for each species prior to performing the ANCOVA, as the individual R^2 values are not necessarily relevant to the hypotheses.
+
+The subsequent results analysis, whereby 2 scatter plots including the linear regression and ANCOVA results were plotted, included useful detail such as the results of the tests on the graphs. The explanation for the ANCOVA results was perhaps a little confusing and could have simply stated that the p-value was significant, and why that’s important.  
+
+Overall, I experienced no issue running this code. It was laid out clearly and chronologically, with thorough statistical analyses and clear plotting of results. In order to be more easily reproduced, it may benefit from more concise notes alongside the actual code itself, which explains what each line or part is doing. For example, which part of the code is responsible for plotting a regression line onto the ggplot. However, this is only a minor adjustment and I believe I wouldn’t encounter an issue attempting to reproduce this.
+
+
+### d) Reflect on your own code based on your experience with your partner's code and their review of yours. (300-500 words)
+
+-   *What improvements did they suggest, and do you agree?*
+
+ I agree with my partner’s advice that the main improvement my code would hugely benefit from is a clear sectioning of my analysis. Greater use of headings and sub-headings would improve the clarity, meaning it would be easier to reproduce, by clearly signposting what I have done and where. For example, the lack of a heading for my hypotheses was of detriment to my partner’s understanding. Additionally, having a combination of notes within chunks of code as well as outside of them means it is unclear when I am merely explaining the code, and when I am actually analysing. For example, the discussion probably should not have been included as part of a chunk of code. This might initially confuse the reader or appear as though it in some way comments on the code used, rather than the output of the code. 
+
+I think my graphs were mostly very clear, however I agree that the plotting of the linear model would be easier to interpret if the labels did not overlap with the data points. Also, there could have been a clearer structural separation of the results for the linear model versus the ANOVA, to make it even more explicit that I was testing 2 different hypotheses. 
+
+
+-   *What did you learn about writing code for other people?*
+
+
+It is important to understand that what might be intuitive to you might not be for others. It is easy when producing code to forget to annotate each section clearly and thoroughly, especially when it’s code that you use every day. However, this not only enables others to interpret and utilise your code, but also means if you return to it at a later date it is clear why you performed each stage of analysis, and what each part of the code is used for. 
+
+Given that >70% of researchers try and fail to reproduce other’s experiments, it is clear that sufficient recording of methods and analysis processes are often omitted, as outlined in Baker’s 2016 paper. Perhaps even more shockingly, over half are unable to reproduce their own data. This highlights the importance of clear instructions and notations of an experiment from start to finish. Furthermore, if an experiment is not able to be reproduced it cannot be considered useful to biology, given the importance of repeats and elimination of random or conflicting variables. 
+
