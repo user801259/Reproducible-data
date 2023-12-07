@@ -1,4 +1,4 @@
-These cleaning functions were used for the dataset
+#These cleaning functions were used for the dataset
 
 ---
   title: "Reproducible Science & Figures in R"
