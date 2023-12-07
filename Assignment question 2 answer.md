@@ -85,47 +85,13 @@ anova(linear_model2)
 ```
 
 
-
-# I am now loading the packages so they are ready to use and I can begin looking at the data.
-
-# We can now have a look at some of the raw penguin data ahead of analysis, and choose some variables of interest which we will use to explore possible relationships. 
-
-head(penguins_raw)
-# Taking a look at the raw set of data, there is a lot of information here that isn't necessarily useful, making it harder to interpret.  
-# We want to remove anything from this table that makes the data hard to read. Initially, we will remove the delta column as it provides no useful information, shorten column names (eg; species names) to only 1 word so the data is more digestible and remove any empty columns which take up space.
-
-penguins_clean <- penguins_raw %>%
-  select(-starts_with("Delta")) %>%
-  select(-Comments) %>%
-  clean_names() %>%
-  clean_column_names() %>%
-  shorten_species() %>%
-  remove_empty_columns_rows()
-
-# We will now check the data to confirm it has been cleaned correctly, which will enable us to analyse, perform statistical tests and form some exploratory graphs of different variables.
-head(penguins_clean)
-
-
-
-# Using the data, I will be exploring whether or not there is a relationship between penguin culmen length and culmen depth. The following code will form a scatter plot with culmen length on the x-axis and culmen depth on the y, including a legend which indicates which colour refers to which species.
-
-ggplot(penguins_clean, aes(x=culmen_length_mm, y = culmen_depth_mm))+
-          geom_point(aes(color = species))+
-  theme_bw()+
-labs( title = 'Penguin culmen length vs depth',
-      x = "Culmen length (mm)",
-       y = "Culmen depth (mm)",
-       color = "Species")
-
-# From this graph alone, there does not appear to be an overall trend between culmen length and depth.
-```
-
+### Results & Discussion
 
 ```{r Plotting Results}
 library(ggpmisc)
 
 #Following on from this, I'm plotting a graph containing the results of the linear model so it's easier to visualise
-ggplot(penguins_clean, aes(x = culmen_length_mm, y = culmen_depth_mm)) +
+linear_model_plot<- ggplot(penguins_clean, aes(x = culmen_length_mm, y = culmen_depth_mm)) +
   geom_point() +  # Scatter plot of the data points
   geom_smooth(method = "lm", se = FALSE, color = "blue") +  
   # Adding a fitted regression line
@@ -137,26 +103,33 @@ ggplot(penguins_clean, aes(x = culmen_length_mm, y = culmen_depth_mm)) +
  geom_point()
 #Adding labels to contain the results of the stats test 
 
+#Saving the figure
+agg_jpeg("Saved_figures/linear_model_plot.jpeg", 
+        width = 15, height = 15, units = "cm", res = 600, scaling = 1)
+linear_model_plot
+dev.off()
+
 #The adjusted R^2 value represents the coefficient of determination, and quantifies the extent of variation in the dependent variable (in this case, culmen depth) which can be explained by the independent variable (culmen length). 
 #The result of 0.052 suggests that culmen length cannot be used to predict culmen depth. However, an F-statistic of 19.88, with a very small p-value, would indicate that there is an overall significant linear relationship between the 2 variables. Further to this, the gradient of -0.0852, also with a very small p-value, indicates the relationship is significantly different from zero.
 # This is perhaps surprising based on the spread of the data, however it makes sense that culmen length in penguins is related to culmen depth. 
 
 #Next, I will plot the results from the ANOVA test onto a graph. Using the ANOVA results, I have included a regression line for each species in order to make the analysis easier.
-ggplot(penguins_clean, aes(x = culmen_length_mm, y = culmen_depth_mm, colour=species)) +
+anova_plot <- ggplot(penguins_clean, aes(x = culmen_length_mm, y = culmen_depth_mm, colour=species)) +
   geom_point() +  # Scatter plot of the data points
   geom_smooth(method = "lm", se = FALSE, color = 'red', aes(group=species)) +  
-  labs(title = "Linear Model of Culmen Length vs Culmen Depth",
+  labs(title = "ANOVA of Culmen Length vs Culmen Depth",
        x = "Culmen Length (mm)",
        y = "Culmen Depth (mm)")
   
+#Saving the figure
+agg_jpeg("Saved_figures/anova_plot.jpeg", 
+        width = 15, height = 15, units = "cm", res = 600, scaling = 1)
+anova_plot
+dev.off()
 
 #I can determine, both from the graph and the output of the ANOVA test, that there is a significant effect of both culmen length and species on the culmen depth. The F-statistic of 80.84 and 522.17 respectively, along with very small p-values, suggest that the effect of length and species on depth are greater than what could be explained by chance alone.
 
 ```
 
 ### Conclusion
-
-Overall, the results of my statistical tests suggest I can accept the hypothesis that variation in culmen depth cannot be predicted by culmen length, due to the small adjusted R^2 value. 
-Additionally, while the gradient is significantly different from zero, it is still very small (-0.05) and indicates a negative relationship, despite the species-specific grdients being positive. 
-However, based on the results from both the linear model and ANOVA, I can conclude that the data suggests both culmen length and species have a significant effect on culmen depth. 
-
+Overall, the results of my statistical tests suggest I can accept the hypothesis that variation in culmen depth cannot be predicted by culmen length, due to the small adjusted R^2 value. Additionally, while the gradient is significantly different from zero, it is still very small (-0.05) and indicates a negative relationship, despite the species-specific grdients being positive. However, based on the results from both the linear model and ANOVA, I can conclude that the data suggests both culmen length and species have a significant effect on culmen depth.  
