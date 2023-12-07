@@ -1,3 +1,6 @@
+
+
+
 ### Introduction
 
 ```{r Data Exploration}
@@ -12,11 +15,76 @@
 # This package enables us to form graphs with the data
 #install.packages('janitor')
 # Finally, this package can be useful for cleaning and organising data
+#install.packages('ggsave')
+#This package enables us to save our figures
 
 library(palmerpenguins)
 library(dplyr)
 library(ggplot2)
 library(janitor)
+
+# I am now loading the packages so they are ready to use and I can begin looking at the data.
+
+# We can now have a look at some of the raw penguin data ahead of analysis, and choose some variables of interest which we will use to explore possible relationships. 
+
+head(penguins_raw)
+# Taking a look at the raw set of data, there is a lot of information here that isn't necessarily useful, making it harder to interpret.  
+# We want to remove anything from this table that makes the data hard to read. Initially, we will remove the delta column as it provides no useful information, shorten column names (eg; species names) to only 1 word so the data is more digestible and remove any empty columns which take up space.
+
+penguins_clean <- penguins_raw %>%
+  select(-starts_with("Delta")) %>%
+  select(-Comments) %>%
+  clean_names() %>%
+  clean_column_names() %>%
+  shorten_species() %>%
+  remove_empty_columns_rows()
+
+# We will now check the data to confirm it has been cleaned correctly, which will enable us to analyse, perform statistical tests and form some exploratory graphs of different variables.
+head(penguins_clean)
+
+
+
+# Using the data, I will be exploring whether or not there is a relationship between penguin culmen length and culmen depth. The following code will form a scatter plot with culmen length on the x-axis and culmen depth on the y, including a legend which indicates which colour refers to which species.
+
+exploratory_plot<- ggplot(penguins_clean, aes(x=culmen_length_mm, y = culmen_depth_mm))+
+          geom_point(aes(color = species))+
+  theme_bw()+
+labs( title = 'Penguin culmen length vs depth',
+      x = "Culmen length (mm)",
+       y = "Culmen depth (mm)",
+       color = "Species")
+head(penguins_clean)
+exploratory_plot
+
+#The following code can be used to save the plot:
+agg_jpeg("Saved_figures/exploratory_plot.jpeg", 
+        width = 15, height = 15, units = "cm", res = 600, scaling = 1)
+exploratory_plot
+dev.off()
+
+# From this graph alone, there does not appear to be an overall trend between culmen length and depth.
+```
+
+### Hypothesis
+
+Using the cleaned dataset and exploratory figure, I consequently hypothesise that culmen length cannot be used to predict or estimate culmen depth. However, I hypothesise that the relationship between culmen length and depth might indeed be species-specific, and that a correlation between species and culmen dimensions exists. This is what I will be investigating using statistical tests and plots.
+
+### Statistical Methods
+
+```{r Statistics}
+#I am going to firstly fit a linear model to the data to determine whether this results in a significant relationship.
+
+linear_model<-lm(culmen_depth_mm ~ culmen_length_mm, data = penguins_clean)
+summary(linear_model)
+
+#I am now performing an analysis of variance (ANOVA) test, in order to determine whether there is a significant effect of species. ANOVA will determine whether differences in the means of each species are significant, or whether it is likely that the observed differences are due to chance. I have first created a second linear model whereby species is incorporated.
+
+linear_model2<- lm(culmen_depth_mm ~ culmen_length_mm + species, data = penguins_clean)
+anova(linear_model2)
+
+```
+
+
 
 # I am now loading the packages so they are ready to use and I can begin looking at the data.
 
@@ -52,23 +120,6 @@ labs( title = 'Penguin culmen length vs depth',
 # From this graph alone, there does not appear to be an overall trend between culmen length and depth.
 ```
 
-Using the cleaned dataset and exploratory figure, I consequently hypothesise that culmen length cannot be used to predict or estimate culmen depth. However, I hypothesise that the relationship between culmen length and depth might indeed be species-specific, and that a correlation between species and culmen dimensions exists. This is what I will be investigating using statistical tests and plots.
-
-### Statistical Methods
-
-```{r Statistics}
-#I am going to firstly fit a linear model to the data to determine whether this results in a significant relationship.
-
-linear_model<-lm(culmen_depth_mm ~ culmen_length_mm, data = penguins_clean)
-summary(linear_model)
-
-#I am now performing an analysis of variance (ANOVA) test, in order to determine whether there is a significant effect of species. ANOVA will determine whether differences in the means of each species are significant, or whether it is likely that the observed differences are due to chance. I have first created a second linear model whereby species is incorporated.
-
-linear_model2<- lm(culmen_depth_mm ~ culmen_length_mm + species, data = penguins_clean)
-anova(linear_model2)
-
-
-```
 
 ```{r Plotting Results}
 library(ggpmisc)
