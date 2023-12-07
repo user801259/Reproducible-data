@@ -1,4 +1,5 @@
 
+This file contains a preview of Q2 - there is also an .Rmd file containing just the code
 
 
 ### Introduction
